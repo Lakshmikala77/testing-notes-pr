@@ -1,0 +1,91 @@
+# This workflow deploys code in DEV AP on push trigger to development branch
+name: Coprocessor (ap, dev) deploy.
+on:
+  pull_request:
+    types: [edited, opened]
+env:
+  BRANCH: ${{ github.event.pull_request.base.ref }}
+
+jobs:
+  lint:
+   
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+    
+
+  tests_coverage:
+    needs: lint
+    name: Test Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+
+  Build:
+    needs: tests_coverage
+    name: Build coprocessor Application
+    runs-on: ubuntu-latest
+ 
+    permissions:
+      contents: read
+      id-token: write
+ 
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+  
+
+    
+
+  Deploy:
+    name: Deploy Coprocessor Application to the Cluster
+    runs-on: ubuntu-latest
+    needs: Build
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+     
+      
+            
+      - name: Parse and Validate PR Body
+        id: parse_pr
+        run: |
+          PR_BODY=$(jq -r '.pull_request.body' < "$GITHUB_EVENT_PATH")
+          echo "PR_BODY=$PR_BODY"
+          DEV_AP=$(echo "$PR_BODY" | grep -A 3 "Dev Environment" | grep "AP Region:" | awk -F'`' '{print $2}')
+          echo "DEV_AP=$DEV_AP" >> $GITHUB_ENV
+
+      # helm dry run and check for pre dev prior to helm upgrade
+      - name: Helm dry run predev
+        id: helm_dry_run_predev    
+        run: |   
+          cd helm/
+          echo "Dev:AP=$DEV_AP"
+         
+        
+     # helm dry run and check for dev prior to helm upgrade
+      - name: Helm dry run dev
+        id: helm_dry_run_dev    
+        run: |    
+          cd helm/
+          echo "Dev:AP=$DEV_AP"
+          
+        
+      ## Deploy Manifest files to GKE Cluster using Helm ###
+      - name: Deploy using Helm in ${{ env.NAMESPACE }} namespace
+        # if: ${{ steps.helm_dry_run_predev.outcome == 'success' && steps.helm_dry_run_dev.outcome == 'success' }}
+        run: |
+         
+          cd helm/
+          echo "Dev: AP=$DEV_AP"
+       
+          
+      
+  

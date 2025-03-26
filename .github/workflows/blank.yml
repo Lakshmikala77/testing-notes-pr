@@ -59,7 +59,7 @@ jobs:
         run: |
           PR_BODY=$(jq -r '.pull_request.body' < "$GITHUB_EVENT_PATH")
           echo "PR_BODY=$PR_BODY"
-          DEV_AP=$(echo "$PR_BODY" | grep -A 3 "Dev Environment" | grep "AP Region:" | awk -F'`' '{print $2}')
+          DEV_AP=$(echo "$PR_BODY" | grep -A 3 "DEV Environment" | grep "AP Region:" | awk -F'`' '{print $2}')
           echo "DEV_AP=$DEV_AP" >> $GITHUB_ENV
 
       # helm dry run and check for pre dev prior to helm upgrade
